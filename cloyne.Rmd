@@ -1,0 +1,999 @@
+---
+title: "Cloyne Member Inclusion (means)"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+cloyne = read.csv("C:/Users/Jordan Fan/Downloads/Cloyne.csv")
+cloyne = cloyne[,-1]
+#got rid of timestamp because didn't contribute anything 
+```
+
+```{r}
+#combined the inconsistency of the how many semesters lived at cloyne questions.  
+num_semesters_1 = as.numeric(sapply(strsplit(as.character(cloyne[,7][1:31]), split = ""), `[[`, 1)) + 1
+num_semesters_2 = as.numeric(sapply(strsplit(as.character(cloyne[,8][32:97]), split = ""), `[[`, 1))
+cloyne = cloyne[,-7]
+cloyne[,7] = c(num_semesters_1, num_semesters_2)
+```
+
+```{r}
+colnames(cloyne) = c("race", "low_income", "gender", "sexual_orientation", "first_generation", "disability", "semesters", "identities", "disability_type", "disability_social", "disability_workshift_central", "disability_workshift_cloyne", "disability_managers", "disability_want_to_see", "disability_accessibility", "disability_basement", "disability_E1", "disability_dinner", "disability_support_circle", "disability_accessible_how", "disability_more_inclusive_feedback", "inclusion", "anti_oppression", "allyship", "community", "cooperativity", "democracy", "microaggression", "support_system", "making_friends", "feel_welcomed", "welcome_week", "common_area", "communicate_respectfully", "privilege", "house_resources", "socialize_identity_groups", "facilities", "managers", "managers_authority", "manager_run", "managers_diverse", "managers_welcoming", "council_attending", "council_speaking", "council_opinion", "council_inclusive", "underrepresentation", "underrepresentation_managers", "community_programs", "community_governance_feedback", "dinner_attendance", "council_attendance", "social_attendance", "community_attendance", "academic_attendance", "support_circle_attendance", "makerspace_attendance", "dont_attend_why", "food_ingredients", "food_dinner", "food_veggie_vegan", "food_staple", "food_requests", "workshops_required", "meals_and_cooking", "community_workshops", "academic_programming", "professional_development", "murals", "murals_offensive", "gender_sexuality_support_circle", "programming_feedback", "support_circle_attend", "gender_sexuality_support_circle_creation", "future_feedback", "focus_group_interview", "undocumented_inclusion", "inclusion_feedback", "survey_feedback")
+
+```
+
+```{r}
+#Responses that solely believed members should decide how to do their CE hours got put together with people who put None.  
+cloyne[which(cloyne$workshops_required == "I think each member should get to completely decide how they fulfill their CE hours."),]$workshops_required = 
+"None. (I think each member should get to completely decide how they fulfill their CE hours.)"
+cloyne[c(4,49),]$workshops_required = "None. (I think each member should get to completely decide how they fulfill their CE hours.)"
+```
+
+
+```{r}
+white = c(which(cloyne$race == "White"), 2, 31, 57)
+
+#latinx = c(which(cloyne$race == "Latinx/Chicanx" | cloyne$race == "Person of Color, Latinx/Chicanx"), 30, 59, 80, 89)
+#black = c(which(cloyne$race == "Black/African-descended"), 59)
+#asian = c(which(cloyne$race == "Asian"|cloyne$race == "Person of Color, Asian"), 5, 22, 40, 42, 52, 61)
+#middle_eastern = 
+poc = (1:nrow(cloyne))[-white]
+latinx = c(which(cloyne$race == "Latinx/Chicanx" | cloyne$race == "Person of Color, Latinx/Chicanx"), 89)
+black = which(cloyne$race == "Black/African-descended")
+asian = c(which(cloyne$race == "Asian"|cloyne$race == "Person of Color, Asian"), 40, 52)
+middle_eastern = which(cloyne$race == "Middle Eastern or North African")
+mixed = c(5, 9, 13, 22, 30, 42, 59, 61, 80, 93)
+other = (1:nrow(cloyne))[-c(white, latinx, black, asian, middle_eastern, mixed)][-3]
+
+
+low_income = which(cloyne$low_income == "Yes")
+not_low_income = which(cloyne$low_income == "No")
+cis = which(cloyne$gender == "Male"|cloyne[,3] == "Female")
+
+non_cis = (1:nrow(cloyne))[-cis]
+women = c(which(cloyne$gender == "Female"), 1, 9)
+men = which(cloyne$gender == "Male")
+
+straight = which(cloyne$sexual_orientation == "Straight")
+queer = (1:nrow(cloyne))[-straight]
+
+disability = which(cloyne$disability == "Yes")
+non_disability = which(cloyne$disability == "No")
+
+first_sem = which(cloyne$semesters == 1)
+multi_sem = (1:nrow(cloyne))[-first_sem]
+```
+
+```{r}
+#columns are the rate from 1-5 questions 
+columns = c(22:27, 29:47, 52:58, 60:64)
+cloyne_matrix = as.matrix(cloyne[,columns])
+#converted the responses to numerical numbers for easier calculation 
+convert_number = function(column){
+as.numeric(sapply(strsplit(as.character(column), split = ""), `[[`, 1))  
+}
+cloyne_matrix = apply(cloyne_matrix, 2, convert_number)
+```
+
+```{r}
+#the means of all the rate from 1-5 questions 
+white_mean = apply(cloyne_matrix[white,], 2, mean, na.rm = TRUE)
+latinx_mean = apply(cloyne_matrix[latinx,], 2, mean, na.rm = TRUE)
+black_mean = apply(cloyne_matrix[black,], 2, mean, na.rm = TRUE)
+asian_mean = apply(cloyne_matrix[asian,], 2, mean, na.rm = TRUE)
+middle_eastern_mean = apply(cloyne_matrix[middle_eastern,], 2, mean, na.rm = TRUE)
+mixed_mean = apply(cloyne_matrix[mixed,], 2, mean, na.rm = TRUE)
+other_mean = apply(cloyne_matrix[other,], 2, mean, na.rm = TRUE)
+
+poc_mean = apply(cloyne_matrix[poc,], 2, mean, na.rm = TRUE)
+low_income_mean = apply(cloyne_matrix[low_income,], 2, mean, na.rm = TRUE)
+not_low_income_mean = apply(cloyne_matrix[not_low_income,], 2, mean, na.rm = TRUE)
+
+cis_mean = apply(cloyne_matrix[cis,], 2, mean, na.rm = TRUE)
+non_cis_mean = apply(cloyne_matrix[non_cis,], 2, mean, na.rm = TRUE)
+women_mean = apply(cloyne_matrix[women,], 2, mean, na.rm = TRUE)
+men_mean = apply(cloyne_matrix[men,], 2, mean, na.rm = TRUE)
+
+straight_mean = apply(cloyne_matrix[straight,], 2, mean, na.rm = TRUE)
+queer_mean = apply(cloyne_matrix[queer,], 2, mean, na.rm = TRUE)
+
+disability_mean = apply(cloyne_matrix[disability,], 2, mean, na.rm = TRUE)
+non_disability_mean = apply(cloyne_matrix[non_disability,], 2, mean, na.rm = TRUE)
+
+first_sem_mean = apply(cloyne_matrix[first_sem,], 2, mean, na.rm = TRUE)
+multi_sem_mean = apply(cloyne_matrix[multi_sem,], 2, mean, na.rm = TRUE)
+
+means = data.frame(rbind(white_mean, poc_mean, latinx_mean, black_mean, asian_mean, middle_eastern_mean, mixed_mean, other_mean, low_income_mean, not_low_income_mean, cis_mean, non_cis_mean, women_mean, men_mean, straight_mean, queer_mean, disability_mean, non_disability_mean, first_sem_mean, multi_sem_mean))
+rownames(means) = c("white", "poc", "latinx", "black", "asian", "middle eastern", "mixed", "other", "low_income", "not_low_income", "cis", "non_cis", "women", "men", "straight", "queer", "disability", "non_disability", "first_semester", "multi_semester")
+means
+
+race_means = data.frame(rbind(white_mean, latinx_mean, black_mean, asian_mean, middle_eastern_mean, mixed_mean, other_mean))
+rownames(race_means) = c("white", "latinx", "black", "asian", "middle eastern", "mixed", "other")
+```
+
+```{r}
+#want percent of each group that felt microaggression, first found which people didn't feel microaggression, then found out how many people from a certain group didn't feel microaggression and subtracted it from how many people are in the group, then converted it to percentage. 
+no_microaggression = which(cloyne$microaggression == "I have not experienced microaggressions or other oppressive behaviors at Cloyne.")
+ma_white = (length(white) - length(intersect(white, no_microaggression)))/length(white)
+ma_poc = (length(poc) - length(intersect(poc, no_microaggression)))/length(poc)
+ma_latinx = (length(latinx) - length(intersect(latinx, no_microaggression)))/length(latinx)
+ma_black = (length(black) - length(intersect(black, no_microaggression)))/length(black)
+ma_asian = (length(asian) - length(intersect(asian, no_microaggression)))/length(asian)
+ma_middle_eastern = (length(middle_eastern) - length(intersect(middle_eastern, no_microaggression)))/length(middle_eastern)
+ma_mixed = (length(mixed) - length(intersect(mixed, no_microaggression)))/length(mixed)
+ma_other = (length(other) - length(intersect(other, no_microaggression)))/length(other)
+#ma_low_income = (length(low_income) - length(intersect(low_income, no_microaggression)))/length(low_income)
+#ma_not_low_income = (length(not_low_income) - length(intersect(not_low_income, no_microaggression)))/length(not_low_income)
+#ma_cis = (length(cis) - length(intersect(cis, no_microaggression)))/length(cis)
+#ma_non_cis = (length(non_cis) - length(intersect(non_cis, no_microaggression)))/length(non_cis)
+#ma_women = (length(women) - length(intersect(women, no_microaggression)))/length(women)
+#ma_men = (length(men) - length(intersect(men, no_microaggression)))/length(men)
+#ma_straight = (length(straight) - length(intersect(straight, no_microaggression)))/length(straight)
+#ma_queer = (length(queer) - length(intersect(queer, no_microaggression)))/length(queer)
+#ma_disability = (length(disability) - length(intersect(disability, no_microaggression)))/length(disability)
+#ma_non_disability = (length(no_disability) - length(intersect(non_disability, no_microaggression)))/length(no_disability)
+#ma_first_sem = (length(first_sem) - length(intersect(first_sem, no_microaggression)))/length(first_sem)
+
+
+#felt this is a question that is specific towards race so only looked into the race categories 
+microaggression = data.frame("White" = ma_white, "Latinx" = ma_latinx, "Black" = ma_black, "Asian" = ma_asian, "Middle Eastern" = ma_middle_eastern, "Mixed" = ma_mixed, "Other" = ma_other, "Poc" = ma_poc)
+microaggression
+
+```
+when conducting the survey in the future, should split up microaggression according to the group. i.e: Do you feel microaggression in regards to your sexuality, race, etc... Only did it for race because I felt that was the most prevalent identity people would feel microaggression for. 
+
+
+```{r}
+cloyne$workshops_required[c(3, 17, 52, 88)] = as.factor("NA")
+#these were responses that didn't check anything for the questions about which workshops they feel should be required for everyone. 
+
+#separated the responses by commas to account for people who checked multiple boxes
+required_workshops = lapply(lapply(lapply(as.character(cloyne$workshops_required), strsplit, split = ","), `[[`, 1), trimws)
+
+#5 possible options: None, anti-oppression, community agreement, consent, and two councils. Anti-oppression option comes before community agreement, and community agreement comes before consent, and consent comes before two councils for everyone. Going to remove each of the responses one at a time and keep track of which response it is
+#delete removes first response, buffer makes sure not trying to remove from an empty list. 
+buffer = function(x) { 
+  if (length(x) == 0) {
+    x = "NA"
+  } else {
+    x = x
+  }
+}
+
+delete = function(x) {
+  x[-1]
+}
+
+#can have at maximum 4 options picked so need to delete and buffer 3 times to capture all responses
+delete_buffer = lapply(lapply(required_workshops, delete), buffer)
+delete_buffer_2 = lapply(lapply(delete_buffer, delete), buffer)
+delete_buffer_3 = lapply(lapply(delete_buffer_2, delete), buffer)
+
+no = which(sapply(required_workshops, `[[`, 1) == "None. (I think each member should get to completely decide how they fulfill their CE hours.)")
+
+anti_oppression = which(sapply(required_workshops, `[[`, 1) == "Anti-Oppression Workshop")
+
+#community agreements could be only option chosen, or could be in a multiple response but will always either show up as first or second option chosen
+community_agreements = which(sapply(required_workshops, `[[`, 1) == "Community Agreements")
+community_agreements_2 = which(sapply(delete_buffer,`[[`, 1) == "Community Agreements")
+community_agreements = c(community_agreements, community_agreements_2)
+
+#consent could be first, second, or third option chosen
+consent = which(sapply(required_workshops, `[[`, 1) == "Consent Workshop")
+consent_2 = which(sapply(delete_buffer,`[[`, 1) == "Consent Workshop")
+consent_3 = which(sapply(delete_buffer_2, `[[`, 1) == "Consent Workshop")
+consent = c(consent, consent_2, consent_3)
+
+#two councils could be first, second, third, or fourth option chosne 
+two_councils = which(sapply(required_workshops, `[[`, 1) == "Two councils (one per semester)")
+two_councils_2 = which(sapply(delete_buffer,`[[`, 1) == "Two councils (one per semester)")
+two_councils_3 = which(sapply(delete_buffer_2,`[[`, 1) == "Two councils (one per semester)")
+two_councils_4 = which(sapply(delete_buffer_3,`[[`, 1) == "Two councils (one per semester)")
+two_councils = c(two_councils, two_councils_2, two_councils_3, two_councils_4)
+
+```
+
+```{r}
+#convert to percentages of the different groups who don't want there to be any required workshops using same method as microaggression
+no_white = (length(intersect(white, no)))/length(white)
+no_poc = (length(intersect(poc, no)))/length(poc)
+no_latinx = (length(intersect(latinx, no)))/length(latinx)
+no_black = (length(intersect(black, no)))/length(black)
+no_asian = (length(intersect(asian, no)))/length(asian)
+no_middle_eastern = (length(intersect(middle_eastern, no)))/length(middle_eastern)
+no_mixed = (length(intersect(mixed, no)))/length(mixed)
+no_other = (length(intersect(other, no)))/length(other)
+no_low_income = (length(intersect(low_income, no)))/length(low_income)
+no_not_low_income = (length(intersect(not_low_income, no)))/length(not_low_income)
+no_cis = (length(intersect(cis, no)))/length(cis)
+no_non_cis = (length(intersect(non_cis, no)))/length(non_cis)
+no_women = (length(intersect(women, no)))/length(women)
+no_men = (length(intersect(men, no)))/length(men)
+no_straight = (length(intersect(straight, no)))/length(straight)
+no_queer = (length(intersect(queer, no)))/length(queer)
+no_disability = (length(intersect(disability, no)))/length(disability)
+no_no_disability = (length(intersect(non_disability, no)))/length(non_disability)
+no_first_semester = (length(intersect(first_sem, no)))/length(first_sem)
+no_multi_semester = (length(intersect(multi_sem, no)))/length(multi_sem)
+```
+
+```{r}
+#percentages of different groups who want anti-oppression workshop to be required 
+ao_white = (length(intersect(white, anti_oppression)))/length(white)
+ao_poc = (length(intersect(poc, anti_oppression)))/length(poc)
+ao_latinx = (length(intersect(latinx, anti_oppression)))/length(latinx)
+ao_black = (length(intersect(black, anti_oppression)))/length(black)
+ao_asian = (length(intersect(asian, anti_oppression)))/length(asian)
+ao_middle_eastern = (length(intersect(middle_eastern, anti_oppression)))/length(middle_eastern)
+ao_mixed = (length(intersect(mixed, anti_oppression)))/length(mixed)
+ao_other = (length(intersect(other, anti_oppression)))/length(other)
+ao_low_income = (length(intersect(low_income, anti_oppression)))/length(low_income)
+ao_not_low_income = (length(intersect(not_low_income, anti_oppression)))/length(not_low_income)
+ao_cis = (length(intersect(cis, anti_oppression)))/length(cis)
+ao_non_cis = (length(intersect(non_cis, anti_oppression)))/length(non_cis)
+ao_women = (length(intersect(women, anti_oppression)))/length(women)
+ao_men = (length(intersect(men, anti_oppression)))/length(men)
+ao_straight = (length(intersect(straight, anti_oppression)))/length(straight)
+ao_queer = (length(intersect(queer, anti_oppression)))/length(queer)
+ao_disability = (length(intersect(disability, anti_oppression)))/length(disability)
+ao_no_disability = (length(intersect(non_disability, anti_oppression)))/length(non_disability)
+ao_first_semester = (length(intersect(first_sem, anti_oppression)))/length(first_sem)
+ao_multi_semester = (length(intersect(multi_sem, anti_oppression)))/length(multi_sem)
+
+```
+
+```{r}
+#percentages of groups that want community aggreements to be required 
+ca_white = (length(intersect(white, community_agreements)))/length(white)
+ca_poc = (length(intersect(poc, community_agreements)))/length(poc)
+ca_latinx = (length(intersect(latinx, community_agreements)))/length(latinx)
+ca_black = (length(intersect(black, community_agreements)))/length(black)
+ca_asian = (length(intersect(asian, community_agreements)))/length(asian)
+ca_middle_eastern = (length(intersect(middle_eastern, community_agreements)))/length(middle_eastern)
+ca_mixed = (length(intersect(mixed, community_agreements)))/length(mixed)
+ca_other = (length(intersect(other, community_agreements)))/length(other)
+ca_low_income = (length(intersect(low_income, community_agreements)))/length(low_income)
+ca_not_low_income = (length(intersect(not_low_income, community_agreements)))/length(not_low_income)
+ca_cis = (length(intersect(cis, community_agreements)))/length(cis)
+ca_non_cis = (length(intersect(non_cis, community_agreements)))/length(non_cis)
+ca_women = (length(intersect(women, community_agreements)))/length(women)
+ca_men = (length(intersect(men, community_agreements)))/length(men)
+ca_straight = (length(intersect(straight, community_agreements)))/length(straight)
+ca_queer = (length(intersect(queer, community_agreements)))/length(queer)
+ca_disability = (length(intersect(disability, community_agreements)))/length(disability)
+ca_no_disability = (length(intersect(non_disability, community_agreements)))/length(non_disability)
+ca_first_semester = (length(intersect(first_sem, community_agreements)))/length(first_sem)
+ca_multi_semester = (length(intersect(multi_sem, community_agreements)))/length(multi_sem)
+
+```
+
+```{r}
+#percentages of different groups that want a consent workshop to be required 
+c_white = (length(intersect(white, consent)))/length(white)
+c_poc = (length(intersect(poc, consent)))/length(poc)
+c_latinx = (length(intersect(latinx, consent)))/length(latinx)
+c_black = (length(intersect(black, consent)))/length(black)
+c_asian = (length(intersect(asian, consent)))/length(asian)
+c_middle_eastern = (length(intersect(middle_eastern, consent)))/length(middle_eastern)
+c_mixed = (length(intersect(mixed, consent)))/length(mixed)
+c_other = (length(intersect(other, consent)))/length(other)
+c_low_income = (length(intersect(low_income, consent)))/length(low_income)
+c_not_low_income = (length(intersect(not_low_income, consent)))/length(not_low_income)
+c_cis = (length(intersect(cis, consent)))/length(cis)
+c_non_cis = (length(intersect(non_cis, consent)))/length(non_cis)
+c_women = (length(intersect(women, consent)))/length(women)
+c_men = (length(intersect(men, consent)))/length(men)
+c_straight = (length(intersect(straight, consent)))/length(straight)
+c_queer = (length(intersect(queer, consent)))/length(queer)
+c_disability = (length(intersect(disability, consent)))/length(disability)
+c_no_disability = (length(intersect(non_disability, consent)))/length(non_disability)
+c_first_semester = (length(intersect(first_sem, consent)))/length(first_sem)
+c_multi_semester = (length(intersect(multi_sem, consent)))/length(multi_sem)
+```
+
+```{r}
+#percentages of groups that want two councils to be required 
+tc_white = (length(intersect(white, two_councils)))/length(white)
+tc_poc = (length(intersect(poc, two_councils)))/length(poc)
+tc_latinx = (length(intersect(latinx, two_councils)))/length(latinx)
+tc_black = (length(intersect(black, two_councils)))/length(black)
+tc_asian = (length(intersect(asian, two_councils)))/length(asian)
+tc_middle_eastern = (length(intersect(middle_eastern, two_councils)))/length(middle_eastern)
+tc_mixed = (length(intersect(mixed, two_councils)))/length(mixed)
+tc_other = (length(intersect(other, two_councils)))/length(other)
+tc_low_income = (length(intersect(low_income, two_councils)))/length(low_income)
+tc_not_low_income = (length(intersect(not_low_income, two_councils)))/length(not_low_income)
+tc_cis = (length(intersect(cis, two_councils)))/length(cis)
+tc_non_cis = (length(intersect(non_cis, two_councils)))/length(non_cis)
+tc_women = (length(intersect(women, two_councils)))/length(women)
+tc_men = (length(intersect(men, two_councils)))/length(men)
+tc_straight = (length(intersect(straight, two_councils)))/length(straight)
+tc_queer = (length(intersect(queer, two_councils)))/length(queer)
+tc_disability = (length(intersect(disability, two_councils)))/length(disability)
+tc_no_disability = (length(intersect(non_disability, two_councils)))/length(non_disability)
+tc_first_semester = (length(intersect(first_sem, two_councils)))/length(first_sem)
+tc_multi_semester = (length(intersect(multi_sem, two_councils)))/length(multi_sem)
+```
+
+```{r}
+workshops = data.frame("None" = c(no_white, no_poc, no_latinx, no_black, no_asian, no_middle_eastern, no_mixed, no_other, no_low_income, no_not_low_income, no_cis, no_non_cis, no_women, no_men, no_straight, no_queer, no_disability, no_no_disability, no_first_semester, no_multi_semester), "Anti-Oppression" = c(ao_white, ao_poc, ao_latinx, ao_black, ao_asian, ao_middle_eastern, ao_mixed, ao_other, ao_low_income, ao_not_low_income, ao_cis, ao_non_cis, ao_women, ao_men, ao_straight, ao_queer, ao_disability, ao_no_disability, ao_first_semester, ao_multi_semester), "Community Agreement" = c(ca_white, ca_poc, ca_latinx, ca_black, ca_asian, ca_middle_eastern, ca_mixed, ca_other, ca_low_income, ca_not_low_income, ca_cis, ca_non_cis, ca_women, ca_men, ca_straight, ca_queer, ca_disability, ca_no_disability, ca_first_semester, ca_multi_semester), "Consent" = c(c_white, c_poc, c_latinx, c_black, c_asian, c_middle_eastern, c_mixed, c_other, c_low_income, c_not_low_income, c_cis, c_non_cis, c_women, c_men, c_straight, c_queer, c_disability, c_no_disability, c_first_semester, c_multi_semester), "Two Councils" = c(tc_white, tc_poc, tc_latinx, tc_black, tc_asian, tc_middle_eastern, tc_mixed, tc_other, tc_low_income, tc_not_low_income, tc_cis, tc_non_cis, tc_women, tc_men, tc_straight, tc_queer, tc_disability, tc_no_disability, tc_first_semester, tc_multi_semester))
+rownames(workshops) = c("white", "poc", "latinx", "black", "asian", "middle eastern", "mixed", "other", "low_income", "not_low_income", "cis", "non_cis", "women", "men", "straight", "queer", "disability", "no_disability", "first_semester", "multi_semester")
+workshops
+```
+
+Community Workshops
+```{r}
+#same structure as the required workshop portion but with the different community workshops different groups want 
+community_workshops = lapply(lapply(lapply(as.character(cloyne$community_workshops), strsplit, split = ","), `[[`, 1), trimws)
+
+buffer = function(x) { 
+  if (length(x) == 0) {
+    x = "NA"
+  } else {
+    x = x
+  }
+}
+
+delete = function(x) {
+  x[-1]
+}
+
+#since there are 6 different options, need 5 delete buffers 
+db_1 = lapply(lapply(community_workshops, delete), buffer)
+db_2 = lapply(lapply(db_1, delete), buffer)
+db_3 = lapply(lapply(db_2, delete), buffer)
+db_4 = lapply(lapply(db_3, delete), buffer)
+db_5 = lapply(lapply(db_4, delete), buffer)
+
+none = which(sapply(community_workshops, `[[`, 1) == "None of the above")
+
+#other workshop
+o = c(26, 62, 63, 68, 77, 82, 85)
+
+#sexual assault workshop
+s = which(sapply(community_workshops, `[[`, 1) == "Sexual assault prevention workshop")
+
+#protest workshop
+p = which(sapply(community_workshops, `[[`, 1) == "Protest workshop")
+p_2 = which(sapply(db_1,`[[`, 1) == "Protest workshop")
+p = c(p, p_2)
+
+#know your rights workshop
+k = which(sapply(community_workshops, `[[`, 1) == "Know Your Rights workshop")
+k_2 = which(sapply(db_1,`[[`, 1) == "Know Your Rights workshop")
+k_3 = which(sapply(db_2, `[[`, 1) == "Know Your Rights workshop")
+k = c(k, k_2, k_3)
+
+#conflict resolution workshop
+c = which(sapply(community_workshops, `[[`, 1) == "Conflict resolution workshop")
+c_2 = which(sapply(db_1,`[[`, 1) == "Conflict resolution workshop")
+c_3 = which(sapply(db_2,`[[`, 1) == "Conflict resolution workshop")
+c_4 = which(sapply(db_3,`[[`, 1) == "Conflict resolution workshop")
+c = c(c, c_2, c_3, c_4)
+
+#trans awareness workshop
+t = which(sapply(community_workshops, `[[`, 1) == "Trans awareness workshop")
+t_2 = which(sapply(db_1,`[[`, 1) == "Trans awareness workshop")
+t_3 = which(sapply(db_2,`[[`, 1) == "Trans awareness workshop")
+t_4 = which(sapply(db_3,`[[`, 1) == "Trans awareness workshop")
+t_5 = which(sapply(db_4,`[[`, 1) == "Trans awareness workshop")
+t = c(t, t_2, t_3, t_4, t_5)
+
+#disability awareness workshop
+d = which(sapply(community_workshops, `[[`, 1) == "Disability awareness workshop")
+d_2 = which(sapply(db_1,`[[`, 1) == "Disability awareness workshop")
+d_3 = which(sapply(db_2,`[[`, 1) == "Disability awareness workshop")
+d_4 = which(sapply(db_3,`[[`, 1) == "Disability awareness workshop")
+d_5 = which(sapply(db_4,`[[`, 1) == "Disability awareness workshop")
+d_6 = which(sapply(db_5,`[[`, 1) == "Disability awareness workshop")
+d = c(d, d_2, d_3, d_4, d_5, d_6)
+
+```
+
+```{r}
+none_white = (length(intersect(white, none)))/length(white)
+none_poc = (length(intersect(poc, none)))/length(poc)
+none_latinx = (length(intersect(latinx, none)))/length(latinx)
+none_black = (length(intersect(black, none)))/length(black)
+none_asian = (length(intersect(asian, none)))/length(asian)
+none_middle_eastern = (length(intersect(middle_eastern, none)))/length(middle_eastern)
+none_mixed = (length(intersect(mixed, none)))/length(mixed)
+none_other = (length(intersect(other, none)))/length(other)
+none_low_income = (length(intersect(low_income, none)))/length(low_income)
+none_not_low_income = (length(intersect(not_low_income, none)))/length(not_low_income)
+none_cis = (length(intersect(cis, none)))/length(cis)
+none_non_cis = (length(intersect(non_cis, none)))/length(non_cis)
+none_women = (length(intersect(women, none)))/length(women)
+none_men = (length(intersect(men, none)))/length(men)
+none_straight = (length(intersect(straight, none)))/length(straight)
+none_queer = (length(intersect(queer, none)))/length(queer)
+none_disability = (length(intersect(disability, none)))/length(disability)
+none_no_disability = (length(intersect(non_disability, none)))/length(non_disability)
+none_first_semester = (length(intersect(first_sem, none)))/length(first_sem)
+none_multi_semester = (length(intersect(multi_sem, none)))/length(multi_sem)
+```
+
+```{r}
+o_white = (length(intersect(white, o)))/length(white)
+o_poc = (length(intersect(poc, o)))/length(poc)
+o_latinx = (length(intersect(latinx, o)))/length(latinx)
+o_black = (length(intersect(black, o)))/length(black)
+o_asian = (length(intersect(asian, o)))/length(asian)
+o_middle_eastern = (length(intersect(middle_eastern, o)))/length(middle_eastern)
+o_mixed = (length(intersect(mixed, o)))/length(mixed)
+o_other = (length(intersect(other, o)))/length(other)
+o_low_income = (length(intersect(low_income, o)))/length(low_income)
+o_not_low_income = (length(intersect(not_low_income, o)))/length(not_low_income)
+o_cis = (length(intersect(cis, o)))/length(cis)
+o_non_cis = (length(intersect(non_cis, o)))/length(non_cis)
+o_women = (length(intersect(women, o)))/length(women)
+o_men = (length(intersect(men, o)))/length(men)
+o_straight = (length(intersect(straight, o)))/length(straight)
+o_queer = (length(intersect(queer, o)))/length(queer)
+o_disability = (length(intersect(disability, o)))/length(disability)
+o_no_disability = (length(intersect(non_disability, o)))/length(non_disability)
+o_first_semester = (length(intersect(first_sem, o)))/length(first_sem)
+o_multi_semester = (length(intersect(multi_sem, o)))/length(multi_sem)
+```
+
+```{r}
+s_white = (length(intersect(white, s)))/length(white)
+s_poc = (length(intersect(poc, s)))/length(poc)
+s_latinx = (length(intersect(latinx, s)))/length(latinx)
+s_black = (length(intersect(black, s)))/length(black)
+s_asian = (length(intersect(asian, s)))/length(asian)
+s_middle_eastern = (length(intersect(middle_eastern, s)))/length(middle_eastern)
+s_mixed = (length(intersect(mixed, s)))/length(mixed)
+s_other = (length(intersect(other, s)))/length(other)
+s_low_income = (length(intersect(low_income, s)))/length(low_income)
+s_not_low_income = (length(intersect(not_low_income, s)))/length(not_low_income)
+s_cis = (length(intersect(cis, s)))/length(cis)
+s_non_cis = (length(intersect(non_cis, s)))/length(non_cis)
+s_women = (length(intersect(women, s)))/length(women)
+s_men = (length(intersect(men, s)))/length(men)
+s_straight = (length(intersect(straight, s)))/length(straight)
+s_queer = (length(intersect(queer, s)))/length(queer)
+s_disability = (length(intersect(disability, s)))/length(disability)
+s_no_disability = (length(intersect(non_disability, s)))/length(non_disability)
+s_first_semester = (length(intersect(first_sem, s)))/length(first_sem)
+s_multi_semester = (length(intersect(multi_sem, s)))/length(multi_sem)
+```
+
+```{r}
+p_white = (length(intersect(white, p)))/length(white)
+p_poc = (length(intersect(poc, p)))/length(poc)
+p_latinx = (length(intersect(latinx, p)))/length(latinx)
+p_black = (length(intersect(black, p)))/length(black)
+p_asian = (length(intersect(asian, p)))/length(asian)
+p_middle_eastern = (length(intersect(middle_eastern, p)))/length(middle_eastern)
+p_mixed = (length(intersect(mixed, p)))/length(mixed)
+p_other = (length(intersect(other, p)))/length(other)
+p_low_income = (length(intersect(low_income, p)))/length(low_income)
+p_not_low_income = (length(intersect(not_low_income, p)))/length(not_low_income)
+p_cis = (length(intersect(cis, p)))/length(cis)
+p_non_cis = (length(intersect(non_cis, p)))/length(non_cis)
+p_women = (length(intersect(women, p)))/length(women)
+p_men = (length(intersect(men, p)))/length(men)
+p_straight = (length(intersect(straight, p)))/length(straight)
+p_queer = (length(intersect(queer, p)))/length(queer)
+p_disability = (length(intersect(disability, p)))/length(disability)
+p_no_disability = (length(intersect(non_disability, p)))/length(non_disability)
+p_first_semester = (length(intersect(first_sem, p)))/length(first_sem)
+p_multi_semester = (length(intersect(multi_sem, p)))/length(multi_sem)
+```
+
+```{r}
+k_white = (length(intersect(white, k)))/length(white)
+k_poc = (length(intersect(poc, k)))/length(poc)
+
+k_latinx = (length(intersect(latinx, k)))/length(latinx)
+k_black = (length(intersect(black, k)))/length(black)
+k_asian = (length(intersect(asian, k)))/length(asian)
+k_middle_eastern = (length(intersect(middle_eastern, k)))/length(middle_eastern)
+k_mixed = (length(intersect(mixed, k)))/length(mixed)
+k_other = (length(intersect(other, k)))/length(other)
+k_low_income = (length(intersect(low_income, k)))/length(low_income)
+k_not_low_income = (length(intersect(not_low_income, k)))/length(not_low_income)
+k_cis = (length(intersect(cis, k)))/length(cis)
+k_non_cis = (length(intersect(non_cis, k)))/length(non_cis)
+k_women = (length(intersect(women, k)))/length(women)
+k_men = (length(intersect(men, k)))/length(men)
+k_straight = (length(intersect(straight, k)))/length(straight)
+k_queer = (length(intersect(queer, k)))/length(queer)
+k_disability = (length(intersect(disability, k)))/length(disability)
+k_no_disability = (length(intersect(non_disability, k)))/length(non_disability)
+k_first_semester = (length(intersect(first_sem, k)))/length(first_sem)
+k_multi_semester = (length(intersect(multi_sem, k)))/length(multi_sem)
+```
+
+```{r}
+c_white = (length(intersect(white, c)))/length(white)
+c_poc = (length(intersect(poc, c)))/length(poc)
+c_latinx = (length(intersect(latinx, c)))/length(latinx)
+c_black = (length(intersect(black, c)))/length(black)
+c_asian = (length(intersect(asian, c)))/length(asian)
+c_middle_eastern = (length(intersect(middle_eastern, c)))/length(middle_eastern)
+c_mixed = (length(intersect(mixed, c)))/length(mixed)
+c_other = (length(intersect(other, c)))/length(other)
+c_low_income = (length(intersect(low_income, c)))/length(low_income)
+c_not_low_income = (length(intersect(not_low_income, c)))/length(not_low_income)
+c_cis = (length(intersect(cis, c)))/length(cis)
+c_non_cis = (length(intersect(non_cis, c)))/length(non_cis)
+c_women = (length(intersect(women, c)))/length(women)
+c_men = (length(intersect(men, c)))/length(men)
+c_straight = (length(intersect(straight, c)))/length(straight)
+c_queer = (length(intersect(queer, c)))/length(queer)
+c_disability = (length(intersect(disability, c)))/length(disability)
+c_no_disability = (length(intersect(non_disability, c)))/length(non_disability)
+c_first_semester = (length(intersect(first_sem, c)))/length(first_sem)
+c_multi_semester = (length(intersect(multi_sem, c)))/length(multi_sem)
+```
+
+```{r}
+t_white = (length(intersect(white, t)))/length(white)
+t_poc = (length(intersect(poc, t)))/length(poc)
+
+t_latinx = (length(intersect(latinx, t)))/length(latinx)
+t_black = (length(intersect(black, t)))/length(black)
+t_asian = (length(intersect(asian, t)))/length(asian)
+t_middle_eastern = (length(intersect(middle_eastern, t)))/length(middle_eastern)
+t_mixed = (length(intersect(mixed, t)))/length(mixed)
+t_other = (length(intersect(other, t)))/length(other)
+t_low_income = (length(intersect(low_income, t)))/length(low_income)
+t_not_low_income = (length(intersect(not_low_income, t)))/length(not_low_income)
+t_cis = (length(intersect(cis, t)))/length(cis)
+t_non_cis = (length(intersect(non_cis, t)))/length(non_cis)
+t_women = (length(intersect(women, t)))/length(women)
+t_men = (length(intersect(men, t)))/length(men)
+t_straight = (length(intersect(straight, t)))/length(straight)
+t_queer = (length(intersect(queer, t)))/length(queer)
+t_disability = (length(intersect(disability, t)))/length(disability)
+t_no_disability = (length(intersect(non_disability, t)))/length(non_disability)
+t_first_semester = (length(intersect(first_sem, t)))/length(first_sem)
+t_multi_semester = (length(intersect(multi_sem, t)))/length(multi_sem)
+```
+
+```{r}
+d_white = (length(intersect(white, d)))/length(white)
+d_poc = (length(intersect(poc, d)))/length(poc)
+d_latinx = (length(intersect(latinx, d)))/length(latinx)
+d_black = (length(intersect(black, d)))/length(black)
+d_asian = (length(intersect(asian, d)))/length(asian)
+d_middle_eastern = (length(intersect(middle_eastern, d)))/length(middle_eastern)
+d_mixed = (length(intersect(mixed, d)))/length(mixed)
+d_other = (length(intersect(other, d)))/length(other)
+d_low_income = (length(intersect(low_income, d)))/length(low_income)
+d_not_low_income = (length(intersect(not_low_income, d)))/length(not_low_income)
+d_cis = (length(intersect(cis, d)))/length(cis)
+d_non_cis = (length(intersect(non_cis, d)))/length(non_cis)
+d_women = (length(intersect(women, d)))/length(women)
+d_men = (length(intersect(men, d)))/length(men)
+d_straight = (length(intersect(straight, d)))/length(straight)
+d_queer = (length(intersect(queer, d)))/length(queer)
+d_disability = (length(intersect(disability, d)))/length(disability)
+d_no_disability = (length(intersect(non_disability, d)))/length(non_disability)
+d_first_semester = (length(intersect(first_sem, d)))/length(first_sem)
+d_multi_semester = (length(intersect(multi_sem, d)))/length(multi_sem)
+```
+
+```{r}
+c_workshops = data.frame("None" = c(none_white, none_poc, none_latinx, none_black, none_asian, none_middle_eastern, none_mixed, none_other, none_low_income, none_not_low_income, none_cis, none_non_cis, none_women, none_men, none_straight, none_queer, none_disability, none_no_disability, none_first_semester, none_multi_semester), "Sexual Assault" = c(s_white, s_poc, s_latinx, s_black, s_asian, s_middle_eastern, s_mixed, s_other, s_low_income, s_not_low_income, s_cis, s_non_cis, s_women, s_men, s_straight, s_queer, s_disability, s_no_disability, s_first_semester, s_multi_semester), "Protest" = c(p_white, p_poc, p_latinx, p_black, p_asian, p_middle_eastern, p_mixed, p_other, p_low_income, p_not_low_income, p_cis, p_non_cis, p_women, p_men, p_straight, p_queer, p_disability, p_no_disability, p_first_semester, p_multi_semester), "Know Your Rights" = c(k_white, k_poc, k_latinx, k_black, k_asian, k_middle_eastern, k_mixed, k_other, k_low_income, k_not_low_income, k_cis, k_non_cis, k_women, k_men, k_straight, k_queer, k_disability, k_no_disability, k_first_semester, k_multi_semester), "Conflict Resolution" = c(c_white, c_poc, c_latinx, c_black, c_asian, c_middle_eastern, c_mixed, c_other, c_low_income, c_not_low_income, c_cis, c_non_cis, c_women, c_men, c_straight, c_queer, c_disability, c_no_disability, c_first_semester, c_multi_semester), "Trans Awareness" = c(t_white, t_poc, t_latinx, t_black, t_asian, t_middle_eastern, t_mixed, t_other, t_low_income, t_not_low_income, t_cis, t_non_cis, t_women, t_men, t_straight, t_queer, t_disability, t_no_disability, t_first_semester, t_multi_semester), "Disability Awareness" = c(d_white, d_poc, d_latinx, d_black, d_asian, d_middle_eastern, d_mixed, d_other, d_low_income, d_not_low_income, d_cis, d_non_cis, d_women, d_men, d_straight, d_queer, d_disability, d_no_disability, d_first_semester, d_multi_semester), "Other" = c(o_white, o_poc, o_latinx, o_black, o_asian, o_middle_eastern, o_mixed, o_other, o_low_income, o_not_low_income, o_cis, o_non_cis, o_women, o_men, o_straight, o_queer, o_disability, o_no_disability, o_first_semester, o_multi_semester))
+
+rownames(c_workshops) = c("white", "poc", "latinx", "black", "asian", "middle eastern", "mixed", "other", "low_income", "not_low_income", "cis", "non_cis", "women", "men", "straight", "queer", "disability", "no_disability", "first_semester", "multi_semester")
+c_workshops
+```
+
+```{r}
+#shuffle takes in the combined vector of the two groups being compared and the length of first group, randomly shuffles those values and takes the difference in the mean 
+shuffle = function(x, length_1){
+  indices = 1:length(x)
+  first_indices = sample(indices, length_1)
+  first = x[first_indices]
+  second = x[-first_indices]
+  mean(first, na.rm = TRUE) - mean(second, na.rm = TRUE)
+}
+
+#permutation takes in the two groups and a category between them that wants to be observed and gives the p-value
+#null hypothesis: observed differences in the data is due to chance and is insignificant 
+#alternative hypothesis: observed differences in the data is statistically significant 
+permutation = function(column, group1, group2){
+  x = cloyne_matrix[,column][group1]
+  y = cloyne_matrix[,column][group2]
+  combined = c(x, y)
+  z = replicate(1000, shuffle(combined, length(x)))
+  result = mean(x, na.rm = TRUE) - mean(y, na.rm = TRUE)
+  if (result < 0){
+    length(which(z < result))/1000
+  }
+  else {
+    length(which(z > result))/1000
+  }
+}
+
+```
+
+
+```{r}
+set.seed(1268)
+p_values_race = sapply(1:ncol(cloyne_matrix), permutation, white, poc)
+means_and_p_value_race = means[c(1,2),]
+means_and_p_value_race[3,] = p_values_race
+rownames(means_and_p_value_race) = c("white", "poc", "p_value") 
+means_and_p_value_race
+```
+
+
+```{r}
+library(ggplot2)
+ggplot() + geom_density(aes(x = data.frame(cloyne_matrix[,1][white])), col = "red") + geom_density(aes(x = data.frame(cloyne_matrix[,1][poc])), col = "blue") + annotate("text", x = 2.5, y = 0.5, label = "POC", col = "blue") + annotate("text", x = 4.5, y = 0.5, label = "White", col = "red") + labs(x = "Inclusion", y = "Density") + annotate("text", x = 4.2, y = 0.03, label = "p-value = 0.008")
+```
+
+```{r}
+ggplot() + geom_density(aes(x = data.frame(cloyne_matrix[,2][white])), col = "red") + geom_density(aes(x = data.frame(cloyne_matrix[,2][poc])), col = "blue") + annotate("text", x = 2.5, y = 0.4, label = "POC", col = "blue") + annotate("text", x = 4.7, y = 0.4, label = "White", col = "red") + labs(x = "Anti-Oppression", y = "Density") + annotate("text", x = 4.2, y = 0.03, label = "p-value = 0.014")
+```
+
+```{r}
+ggplot() + geom_density(aes(x = data.frame(cloyne_matrix[,3][white])), col = "red") + geom_density(aes(x = data.frame(cloyne_matrix[,3][poc])), col = "blue") + annotate("text", x = 2.5, y = 0.4, label = "POC", col = "blue") + annotate("text", x = 4.7, y = 0.4, label = "White", col = "red") + labs(x = "Allyship", y = "Density") + annotate("text", x = 4.4, y = 0.03, label = "p-value = 0.042")
+```
+
+```{r}
+ggplot() + geom_density(aes(x = data.frame(cloyne_matrix[,7][white])), col = "red") + geom_density(aes(x = data.frame(cloyne_matrix[,7][poc])), col = "blue") + annotate("text", x = 2.5, y = 0.35, label = "POC", col = "blue") + annotate("text", x = 4.7, y = 0.24, label = "White", col = "red") + labs(x = "Support System", y = "Density") + annotate("text", x = 4.2, y = 0.03, label = "p-value = 0.024")
+```
+
+```{r}
+ggplot() + geom_density(aes(x = data.frame(cloyne_matrix[,8][white])), col = "red") + geom_density(aes(x = data.frame(cloyne_matrix[,8][poc])), col = "blue") + annotate("text", x = 2.5, y = 0.35, label = "POC", col = "blue") + annotate("text", x = 4.7, y = 0.25, label = "White", col = "red") + labs(x = "Making Friends", y = "Density")+ annotate("text", x = 4.2, y = 0.03, label = "p-value = 0.023")
+```
+
+```{r}
+ggplot() + geom_density(aes(x = data.frame(cloyne_matrix[,11][white])), col = "red") + geom_density(aes(x = data.frame(cloyne_matrix[,11][poc])), col = "blue") + annotate("text", x = 2.5, y = 0.27, label = "POC", col = "blue") + annotate("text", x = 4.7, y = 0.31, label = "White", col = "red") + labs(x = "Common Area Usage", y = "Density") + annotate("text", x = 4.2, y = 0.03, label = "p-value = 0.007")
+```
+
+```{r}
+ggplot() + geom_density(aes(x = data.frame(cloyne_matrix[,14][white])), col = "red") + geom_density(aes(x = data.frame(cloyne_matrix[,14][poc])), col = "blue") + annotate("text", x = 2.5, y = 0.27, label = "POC", col = "blue") + annotate("text", x = 4.4, y = 0.5, label = "White", col = "red") + labs(x = "House Resources Usage", y = "Density")+ annotate("text", x = 4.2, y = 0.03, label = "p-value = 0.006")
+```
+
+```{r}
+ggplot() + geom_density(aes(x = data.frame(cloyne_matrix[,16][white])), col = "red") + geom_density(aes(x = data.frame(cloyne_matrix[,16][poc])), col = "blue") + annotate("text", x = 2.5, y = 0.35, label = "POC", col = "blue") + annotate("text", x = 4.6, y = 0.28, label = "White", col = "red") + labs(x = "Facilities Usage", y = "Density") + annotate("text", x = 4.2, y = 0.03, label = "p-value = 0.012")
+```
+
+
+
+```{r}
+ggplot() + geom_density(aes(x = data.frame(cloyne_matrix[,18][white])), col = "red") + geom_density(aes(x = data.frame(cloyne_matrix[,18][poc])), col = "blue") + annotate("text", x = 2.5, y = 0.35, label = "POC", col = "blue") + annotate("text", x = 4.7, y = 0.46, label = "White", col = "red") + labs(x = "Manager Authority", y = "Density") + annotate("text", x = 4.2, y = 0.03, label = "p-value = 0.006")
+```
+
+```{r}
+ggplot() + geom_density(aes(x = data.frame(cloyne_matrix[,19][white])), col = "red") + geom_density(aes(x = data.frame(cloyne_matrix[,19][poc])), col = "blue") + annotate("text", x = 2.6, y = 0.35, label = "POC", col = "blue") + annotate("text", x = 4.5, y = 0.43, label = "White", col = "red") + labs(x = "Running for Manager Position", y = "Density") + annotate("text", x = 4.2, y = 0.03, label = "p-value = 0.002")
+```
+
+```{r}
+ggplot() + geom_density(aes(x = data.frame(cloyne_matrix[,22][white])), col = "red") + geom_density(aes(x = data.frame(cloyne_matrix[,22][poc])), col = "blue") + annotate("text", x = 2.5, y = 0.35, label = "POC", col = "blue") + annotate("text", x = 4.6, y = 0.31, label = "White", col = "red") + labs(x = "Council Attendance", y = "Density") + annotate("text", x = 4.2, y = 0.03, label = "p-value = 0.014")
+```
+
+```{r}
+ggplot() + geom_density(aes(x = data.frame(cloyne_matrix[,26][white])), col = "red") + geom_density(aes(x = data.frame(cloyne_matrix[,26][poc])), col = "blue") + annotate("text", x = 1.5, y = 0.18, label = "POC", col = "blue") + annotate("text", x = 4.4, y = 0.25, label = "White", col = "red") + labs(x = "Dinner/Brunch Attendance", y = "Density") + annotate("text", x = 4.2, y = 0.03, label = "p-value = 0.007")
+```
+```{r}
+ggplot() + geom_density(aes(x = data.frame(cloyne_matrix[,28][white])), col = "red") + geom_density(aes(x = data.frame(cloyne_matrix[,28][poc])), col = "blue") + annotate("text", x = 1.3, y = 0.3, label = "POC", col = "blue") + annotate("text", x = 3.5, y = 0.35, label = "White", col = "red") + labs(x = "Socials Attendance", y = "Density") + annotate("text", x = 1.8, y = 0.03, label = "p-value = 0.027")
+```
+
+```{r}
+ggplot() + geom_density(aes(x = data.frame(cloyne_matrix[,33][white])), col = "red") + geom_density(aes(x = data.frame(cloyne_matrix[,33][poc])), col = "blue") + annotate("text", x = 1.5, y = 0.22, label = "POC", col = "blue") + annotate("text", x = 4.4, y = 0.29, label = "White", col = "red") + labs(x = "Ingredients Representation", y = "Density") + annotate("text", x = 4.2, y = 0.03, label = "p-value = 0.000")
+```
+
+```{r}
+ggplot() + geom_density(aes(x = data.frame(cloyne_matrix[,34][white])), col = "red") + geom_density(aes(x = data.frame(cloyne_matrix[,34][poc])), col = "blue") + annotate("text", x = 1.5, y = 0.22, label = "POC", col = "blue") + annotate("text", x = 4.4, y = 0.32, label = "White", col = "red") + labs(x = "Dinner Representation", y = "Density") + annotate("text", x = 4.2, y = 0.03, label = "p-value = 0.000")
+```
+```{r}
+ggplot() + geom_density(aes(x = data.frame(cloyne_matrix[,35][white])), col = "red") + geom_density(aes(x = data.frame(cloyne_matrix[,35][poc])), col = "blue") + annotate("text", x = 1.5, y = 0.19, label = "POC", col = "blue") + annotate("text", x = 4.5, y = 0.29, label = "White", col = "red") + labs(x = "Vegan/Vegetarian Representation", y = "Density") + annotate("text", x = 4.2, y = 0.03, label = "p-value = 0.01")
+```
+
+```{r}
+ggplot() + geom_density(aes(x = data.frame(cloyne_matrix[,36][white])), col = "red") + geom_density(aes(x = data.frame(cloyne_matrix[,36][poc])), col = "blue") + annotate("text", x = 1.5, y = 0.18, label = "POC", col = "blue") + annotate("text", x = 4.6, y = 0.29, label = "White", col = "red") + labs(x = "Staple Food Representation", y = "Density") + annotate("text", x = 4.2, y = 0.03, label = "p-value = 0.003")
+```
+
+white vs. poc
+conclusions: people who considers themselves poc 
+ - don't feel as included 
+ - don't feel that the house focuses on anti-oppression as much 
+ - feel there isn't as much allyship
+ - don't have as strong of a support system
+ - have a harder time making friends 
+ - feel less comfortable taking up space in common area
+ - feel less comfortable using house resources
+ - feel less comfortable using facilities
+ - feel managers don't use their authority as appropriately
+ - don't feel as comfortable running for a manager position
+ - don't feel as comfortable attending councils 
+ - don't attend dinners or brunch as often
+ - don't attend as many socials
+ - don't feel that they have as many ingredients to make foods from their culture
+ - are not as satisfied with the representation of their cultural foods at dinners
+ - do not find the vegan or vegetarian food is as inclusive for them
+ - find that what the house considers to be staple foods doesn't correspond with what they consider as staple foods
+
+```{r}
+set.seed(12368)
+p_values_income = sapply(1:ncol(cloyne_matrix), permutation, low_income, not_low_income)
+means_and_p_value_income = means[c(9,10),]
+means_and_p_value_income[3,] = p_values_income
+rownames(means_and_p_value_income) = c("low_income", "not_low_income", "p_value") 
+means_and_p_value_income
+```
+
+```{r}
+ggplot() + geom_density(aes(x = data.frame(cloyne_matrix[,1][not_low_income])), col = "red") + geom_density(aes(x = data.frame(cloyne_matrix[,1][low_income])), col = "blue") + annotate("text", x = 2.3, y = 0.5, label = "Low Income", col = "blue") + annotate("text", x = 4.3, y = 0.55, label = "Not Low Income", col = "red") + labs(x = "Inclusion", y = "Density") + annotate("text", x = 4.2, y = 0.03, label = "p-value = 0.019")
+```
+
+```{r}
+ggplot() + geom_density(aes(x = data.frame(cloyne_matrix[,2][not_low_income])), col = "red") + geom_density(aes(x = data.frame(cloyne_matrix[,2][low_income])), col = "blue") + annotate("text", x = 2.3, y = 0.5, label = "Low Income", col = "blue") + annotate("text", x = 4.3, y = 0.47, label = "Not Low Income", col = "red") + labs(x = "Anti-Oppression", y = "Density") + annotate("text", x = 4.2, y = 0.03, label = "p-value = 0.046")
+```
+```{r}
+ggplot() + geom_density(aes(x = data.frame(cloyne_matrix[,11][not_low_income])), col = "red") + geom_density(aes(x = data.frame(cloyne_matrix[,11][low_income])), col = "blue") + annotate("text", x = 2.3, y = 0.35, label = "Low Income", col = "blue") + annotate("text", x = 4.3, y = 0.45, label = "Not Low Income", col = "red") + labs(x = "Common Area Usage", y = "Density") + annotate("text", x = 4.2, y = 0.03, label = "p-value = 0.026")
+```
+
+```{r}
+ggplot() + geom_density(aes(x = data.frame(cloyne_matrix[,12][not_low_income])), col = "red") + geom_density(aes(x = data.frame(cloyne_matrix[,12][low_income])), col = "blue") + annotate("text", x = 2.2, y = 0.5, label = "Low Income", col = "blue") + annotate("text", x = 4.3, y = 0.47, label = "Not Low Income", col = "red") + labs(x = "Communicating Respectfully", y = "Density") + annotate("text", x = 4.2, y = 0.03, label = "p-value = 0.015")
+```
+
+```{r}
+ggplot() + geom_density(aes(x = data.frame(cloyne_matrix[,13][not_low_income])), col = "red") + geom_density(aes(x = data.frame(cloyne_matrix[,13][low_income])), col = "blue") + annotate("text", x = 2.1, y = 0.35, label = "Low Income", col = "blue") + annotate("text", x = 4.3, y = 0.48, label = "Not Low Income", col = "red") + labs(x = "Privilege Acknowledgement", y = "Density") + annotate("text", x = 4.2, y = 0.03, label = "p-value = 0.01")
+```
+```{r}
+ggplot() + geom_density(aes(x = data.frame(cloyne_matrix[,14][not_low_income])), col = "red") + geom_density(aes(x = data.frame(cloyne_matrix[,14][low_income])), col = "blue") + annotate("text", x = 2.3, y = 0.25, label = "Low Income", col = "blue") + annotate("text", x = 3.0, y = 0.45, label = "Not Low Income", col = "red") + labs(x = "House Resources Usage", y = "Density") + annotate("text", x = 4.2, y = 0.03, label = "p-value = 0.006")
+```
+
+```{r}
+ggplot() + geom_density(aes(x = data.frame(cloyne_matrix[,16][not_low_income])), col = "red") + geom_density(aes(x = data.frame(cloyne_matrix[,16][low_income])), col = "blue") + annotate("text", x = 2.1, y = 0.35, label = "Low Income", col = "blue") + annotate("text", x = 4.3, y = 0.48, label = "Not Low Income", col = "red") + labs(x = "Facilities Usage", y = "Density") + annotate("text", x = 4.2, y = 0.03, label = "p-value = 0.004")
+```
+
+```{r}
+ggplot() + geom_density(aes(x = data.frame(cloyne_matrix[,19][not_low_income])), col = "red") + geom_density(aes(x = data.frame(cloyne_matrix[,19][low_income])), col = "blue") + annotate("text", x = 2.3, y = 0.28, label = "Low Income", col = "blue") + annotate("text", x = 4.3, y = 0.45, label = "Not Low Income", col = "red") + labs(x = "Running for Manager Position", y = "Density") + annotate("text", x = 4.2, y = 0.03, label = "p-value = 0.014")
+```
+```{r}
+ggplot() + geom_density(aes(x = data.frame(cloyne_matrix[,21][not_low_income])), col = "red") + geom_density(aes(x = data.frame(cloyne_matrix[,21][low_income])), col = "blue") + annotate("text", x = 2.1, y = 0.35, label = "Low Income", col = "blue") + annotate("text", x = 4.3, y = 0.43, label = "Not Low Income", col = "red") + labs(x = "Managers Welcoming", y = "Density") + annotate("text", x = 4.2, y = 0.03, label = "p-value = 0.027")
+```
+
+```{r}
+ggplot() + geom_density(aes(x = data.frame(cloyne_matrix[,22][not_low_income])), col = "red") + geom_density(aes(x = data.frame(cloyne_matrix[,22][low_income])), col = "blue") + annotate("text", x = 2.3, y = 0.25, label = "Low Income", col = "blue") + annotate("text", x = 4.3, y = 0.43, label = "Not Low Income", col = "red") + labs(x = "Council Attendance", y = "Density") + annotate("text", x = 4.2, y = 0.03, label = "p-value = 0.002")
+```
+
+```{r}
+ggplot() + geom_density(aes(x = data.frame(cloyne_matrix[,24][not_low_income])), col = "red") + geom_density(aes(x = data.frame(cloyne_matrix[,24][low_income])), col = "blue") + annotate("text", x = 2.2, y = 0.35, label = "Low Income", col = "blue") + annotate("text", x = 4.3, y = 0.42, label = "Not Low Income", col = "red") + labs(x = "Opinions Heard at Council", y = "Density") + annotate("text", x = 4.2, y = 0.03, label = "p-value = 0.03")
+```
+```{r}
+ggplot() + geom_density(aes(x = data.frame(cloyne_matrix[,25][not_low_income])), col = "red") + geom_density(aes(x = data.frame(cloyne_matrix[,25][low_income])), col = "blue") + annotate("text", x = 2.1, y = 0.35, label = "Low Income", col = "blue") + annotate("text", x = 4.3, y = 0.35, label = "Not Low Income", col = "red") + labs(x = "Council Inclusivity", y = "Density") + annotate("text", x = 4.2, y = 0.03, label = "p-value = 0.027")
+```
+
+```{r}
+ggplot() + geom_density(aes(x = data.frame(cloyne_matrix[,26][not_low_income])), col = "red") + geom_density(aes(x = data.frame(cloyne_matrix[,26][low_income])), col = "blue") + annotate("text", x = 2.3, y = 0.27, label = "Low Income", col = "blue") + annotate("text", x = 4.3, y = 0.35, label = "Not Low Income", col = "red") + labs(x = "Dinner Attendance", y = "Density") + annotate("text", x = 4.2, y = 0.03, label = "p-value = 0.027")
+```
+
+```{r}
+ggplot() + geom_density(aes(x = data.frame(cloyne_matrix[,28][not_low_income])), col = "red") + geom_density(aes(x = data.frame(cloyne_matrix[,28][low_income])), col = "blue") + annotate("text", x = 2, y = 0.18, label = "Low Income", col = "blue") + annotate("text", x = 4, y = 0.3, label = "Not Low Income", col = "red") + labs(x = "Socials Attendance", y = "Density") + annotate("text", x = 1.8, y = 0.03, label = "p-value = 0.044")
+```
+
+```{r}
+ggplot() + geom_density(aes(x = data.frame(cloyne_matrix[,30][not_low_income])), col = "red") + geom_density(aes(x = data.frame(cloyne_matrix[,30][low_income])), col = "blue") + annotate("text", x = 2.3, y = 0.45, label = "Low Income", col = "blue") + annotate("text", x = 4.1, y = 0.2, label = "Not Low Income", col = "red") + labs(x = "Academic Events Attendance", y = "Density") + annotate("text", x = 1.8, y = 0.03, label = "p-value = 0.035")
+```
+
+```{r}
+ggplot() + geom_density(aes(x = data.frame(cloyne_matrix[,33][not_low_income])), col = "red") + geom_density(aes(x = data.frame(cloyne_matrix[,33][low_income])), col = "blue") + annotate("text", x = 2.1, y = 0.35, label = "Low Income", col = "blue") + annotate("text", x = 4.3, y = 0.36, label = "Not Low Income", col = "red") + labs(x = "Ingredients Representation", y = "Density") + annotate("text", x = 4.2, y = 0.03, label = "p-value = 0.000")
+```
+
+```{r}
+ggplot() + geom_density(aes(x = data.frame(cloyne_matrix[,34][not_low_income])), col = "red") + geom_density(aes(x = data.frame(cloyne_matrix[,34][low_income])), col = "blue") + annotate("text", x = 2.1, y = 0.32, label = "Low Income", col = "blue") + annotate("text", x = 3.1, y = 0.46, label = "Not Low Income", col = "red") + labs(x = "Dinner Representation", y = "Density") + annotate("text", x = 4.2, y = 0.03, label = "p-value = 0.000")
+```
+
+```{r}
+ggplot() + geom_density(aes(x = data.frame(cloyne_matrix[,35][not_low_income])), col = "red") + geom_density(aes(x = data.frame(cloyne_matrix[,35][low_income])), col = "blue") + annotate("text", x = 2.1, y = 0.25, label = "Low Income", col = "blue") + annotate("text", x = 3.9, y = 0.46, label = "Not Low Income", col = "red") + labs(x = "Vegan/Vegetarian Representation", y = "Density") + annotate("text", x = 4.2, y = 0.03, label = "p-value = 0.001")
+```
+
+```{r}
+ggplot() + geom_density(aes(x = data.frame(cloyne_matrix[,36][not_low_income])), col = "red") + geom_density(aes(x = data.frame(cloyne_matrix[,36][low_income])), col = "blue") + annotate("text", x = 2.1, y = 0.27, label = "Low Income", col = "blue") + annotate("text", x = 4.3, y = 0.38, label = "Not Low Income", col = "red") + labs(x = "Staple Food Representation", y = "Density") + annotate("text", x = 4.2, y = 0.03, label = "p-value = 0.001")
+```
+
+```{r}
+ggplot() + geom_density(aes(x = data.frame(cloyne_matrix[,37][not_low_income])), col = "red") + geom_density(aes(x = data.frame(cloyne_matrix[,37][low_income])), col = "blue") + annotate("text", x = 2.1, y = 0.35, label = "Low Income", col = "blue") + annotate("text", x = 4.3, y = 0.49, label = "Not Low Income", col = "red") + labs(x = "Food Requests", y = "Density") + annotate("text", x = 4.2, y = 0.03, label = "p-value = 0.003")
+```
+
+low income vs. not low income
+Conclusions: people who considers themselves low income 
+ - don't feel as included 
+ - don't feel that the house focuses on anti-oppression as much 
+ - don't feel as comfortable taking up space in common area 
+ - don't feel that members communicate as respectfully 
+ - don't feel that members acknowledge their privilege 
+ - don't feel as comfortable using house resources
+ - don't feel as comfortable using facilities
+ - don't feel as comfortable running for a manager position
+ - don't feel as welcomed by managers 
+ - don't feel as comfortable attending councils 
+ - don't feel their opinions are heard as much during councils
+ - don't feel that councils are as inclusive 
+ - don't attend dinners as much
+ - don't attend socials as much 
+ - don't attend academic events as much
+ - don't feel they have as many ingredients to make foods from their background 
+ - are not as satisfied with the representation of their cultural foods at dinners
+ - do not find the vegan or vegetarian food is as inclusive for them
+ - find that what the house considers to be staple foods doesn't correspond with what they consider as staple foods
+ - feel that their food requests are not fulfilled as often 
+
+```{r}
+set.seed(58329)
+p_values_gq = sapply(1:ncol(cloyne_matrix), permutation, cis, non_cis)
+means_and_p_value_gq = means[c(11,12),]
+means_and_p_value_gq[3,] = p_values_gq
+rownames(means_and_p_value_gq) = c("cis", "non_cis", "p_value") 
+means_and_p_value_gq
+```
+
+```{r}
+ggplot() + geom_density(aes(x = data.frame(cloyne_matrix[,14][cis])), col = "red") + geom_density(aes(x = data.frame(cloyne_matrix[,14][non_cis])), col = "blue") + annotate("text", x = 4, y = 0.65, label = "Non-cisgender", col = "blue") + annotate("text", x = 2.3, y = 0.3, label = "Cisgender", col = "red") + labs(x = "House Resources Usage", y = "Density") + annotate("text", x = 4.3, y = 0.05, label = "p-value = 0.002")
+```
+
+```{r}
+ggplot() + geom_density(aes(x = data.frame(cloyne_matrix[,31][cis])), col = "red") + geom_density(aes(x = data.frame(cloyne_matrix[,31][non_cis])), col = "blue") + annotate("text", x = 4, y = 0.20, label = "Non-cisgender", col = "blue") + annotate("text", x = 2.3, y = 0.35, label = "Cisgender", col = "red") + labs(x = "Support Circle Attendance", y = "Density") + annotate("text", x = 1.8, y = 0.05, label = "p-value = 0.014")
+```
+
+cis vs. non_cis: 
+conclusions: non cis-gendered people 
+ - feel more comfortable using house resources 
+ - attend support circles more often 
+ 
+```{r}
+set.seed(352782)
+p_values_gender = sapply(1:ncol(cloyne_matrix), permutation, women, men)
+means_and_p_value_gender = means[c(13,14),]
+means_and_p_value_gender[3,] = p_values_gender
+rownames(means_and_p_value_gender) = c("women", "men", "p_value") 
+means_and_p_value_gender
+```
+
+```{r}
+ggplot() + geom_density(aes(x = data.frame(cloyne_matrix[,1][men])), col = "red") + geom_density(aes(x = data.frame(cloyne_matrix[,1][women])), col = "blue") + annotate("text", x = 2.3, y = 0.44, label = "Women", col = "blue") + annotate("text", x = 4, y = 0.55, label = "Men", col = "red") + labs(x = "Inclusion", y = "Density") + annotate("text", x = 4.3, y = 0.05, label = "p-value = 0.017")
+```
+```{r}
+ggplot() + geom_density(aes(x = data.frame(cloyne_matrix[,14][men])), col = "red") + geom_density(aes(x = data.frame(cloyne_matrix[,14][women])), col = "blue") + annotate("text", x = 4, y = 0.55, label = "Women", col = "blue") + annotate("text", x = 2, y = 0.2, label = "Men", col = "red") + labs(x = "House Resouces Usage", y = "Density") + annotate("text", x = 4.3, y = 0.05, label = "p-value = 0.024")
+```
+
+```{r}
+ggplot() + geom_density(aes(x = data.frame(cloyne_matrix[,26][men])), col = "red") + geom_density(aes(x = data.frame(cloyne_matrix[,26][women])), col = "blue") + annotate("text", x = 4, y = 0.33, label = "Women", col = "blue") + annotate("text", x = 2, y = 0.21, label = "Men", col = "red") + labs(x = "Dinner Attendance", y = "Density") + annotate("text", x = 4.3, y = 0.05, label = "p-value = 0.006")
+```
+
+```{r}
+ggplot() + geom_density(aes(x = data.frame(cloyne_matrix[,28][men])), col = "red") + geom_density(aes(x = data.frame(cloyne_matrix[,28][women])), col = "blue") + annotate("text", x = 2.7, y = 0.33, label = "Women", col = "blue") + annotate("text", x = 2, y = 0.21, label = "Men", col = "red") + labs(x = "Socials Attendance", y = "Density") + annotate("text", x = 1.8, y = 0.03, label = "p-value = 0.037")
+```
+
+```{r}
+ggplot() + geom_density(aes(x = data.frame(cloyne_matrix[,29][men])), col = "red") + geom_density(aes(x = data.frame(cloyne_matrix[,29][women])), col = "blue") + annotate("text", x = 4, y = 0.2, label = "Women", col = "blue") + annotate("text", x = 1.5, y = 0.5, label = "Men", col = "red") + labs(x = "Community Workshop Attendance", y = "Density") + annotate("text", x = 1.8, y = 0.03, label = "p-value = 0.017")
+```
+```{r}
+ggplot() + geom_density(aes(x = data.frame(cloyne_matrix[,32][men])), col = "red") + geom_density(aes(x = data.frame(cloyne_matrix[,32][women])), col = "blue") + annotate("text", x = 3, y = 0.27, label = "Women", col = "blue") + annotate("text", x = 1.6, y = 0.6, label = "Men", col = "red") + labs(x = "Makerspace Workshop Attendance", y = "Density") + annotate("text", x = 1.8, y = 0.04, label = "p-value = 0.006")
+```
+
+
+women vs. men:  
+conclusions: people who identify as women
+ - don't feel as included 
+ - are more comfortable using house resources 
+ - attend dinner more often 
+ - attend social events more often 
+ - attend community workshops more often 
+ - attend makerspace workshops more often 
+
+
+```{r}
+set.seed(6367)
+p_values_sexuality = sapply(1:ncol(cloyne_matrix), permutation, straight, queer)
+means_and_p_value_sexuality = means[c(15,16),]
+means_and_p_value_sexuality[3,] = p_values_sexuality
+rownames(means_and_p_value_sexuality) = c("straight", "queer", "p_value") 
+means_and_p_value_sexuality
+```
+
+```{r}
+ggplot() + geom_density(aes(x = data.frame(cloyne_matrix[,15][straight])), col = "red") + geom_density(aes(x = data.frame(cloyne_matrix[,15][queer])), col = "blue") + annotate("text", x = 2, y = 0.27, label = "Queer", col = "blue") + annotate("text", x = 2.5, y = 0.45, label = "Straight", col = "red") + labs(x = "Different Identity Group Socializing", y = "Density") + annotate("text", x = 4.3, y = 0.05, label = "p-value = 0.018")
+```
+```{r}
+ggplot() + geom_density(aes(x = data.frame(cloyne_matrix[,20][straight])), col = "red") + geom_density(aes(x = data.frame(cloyne_matrix[,20][queer])), col = "blue") + annotate("text", x = 2.5, y = 0.45, label = "Queer", col = "blue") + annotate("text", x = 3.2, y = 0.25, label = "Straight", col = "red") + labs(x = "Diverse Managers", y = "Density") + annotate("text", x = 4.3, y = 0.05, label = "p-value = 0.038")
+```
+
+
+straight vs. queer: 
+conclusions: people who identify as queer 
+ - don't feel members socialize as much across identity groups 
+ - don't feel that the manager team is that diverse
+
+```{r}
+p_values_ability = sapply(1:ncol(cloyne_matrix), permutation, disability, non_disability)
+means_and_p_value_ability = means[c(17,18),]
+means_and_p_value_ability[3,] = p_values_ability
+rownames(means_and_p_value_ability) = c("disability", "non_disability", "p_value") 
+means_and_p_value_ability
+```
+
+```{r}
+ggplot() + geom_density(aes(x = data.frame(cloyne_matrix[,5][non_disability])), col = "red") + geom_density(aes(x = data.frame(cloyne_matrix[,5][disability])), col = "blue") + annotate("text", x = 2, y = 0.27, label = "Disability", col = "blue") + annotate("text", x = 4.5, y = 0.53, label = "No Disability", col = "red") + labs(x = "Cooperativity", y = "Density") + annotate("text", x = 4.3, y = 0.03, label = "p-value = 0.018")
+```
+```{r}
+ggplot() + geom_density(aes(x = data.frame(cloyne_matrix[,6][non_disability])), col = "red") + geom_density(aes(x = data.frame(cloyne_matrix[,6][disability])), col = "blue") + annotate("text", x = 2.3, y = 0.5, label = "Disability", col = "blue") + annotate("text", x = 4.5, y = 0.63, label = "No Disability", col = "red") + labs(x = "Democracy", y = "Density") + annotate("text", x = 4.3, y = 0.03, label = "p-value = 0.024")
+```
+
+```{r}
+ggplot() + geom_density(aes(x = data.frame(cloyne_matrix[,21][non_disability])), col = "red") + geom_density(aes(x = data.frame(cloyne_matrix[,21][disability])), col = "blue") + annotate("text", x = 4, y = 0.47, label = "Disability", col = "blue") + annotate("text", x = 2.2, y = .35, label = "No Disability", col = "red") + labs(x = "Managers Welcoming", y = "Density") + annotate("text", x = 4.3, y = 0.03, label = "p-value = 0.047")
+```
+```{r}
+ggplot() + geom_density(aes(x = data.frame(cloyne_matrix[,31][non_disability])), col = "red") + geom_density(aes(x = data.frame(cloyne_matrix[,31][disability])), col = "blue") + annotate("text", x = 4, y = 0.2, label = "Disability", col = "blue") + annotate("text", x = 1.9, y = 0.53, label = "No Disability", col = "red") + labs(x = "Support Circle Attendance", y = "Density") + annotate("text", x = 1.8, y = 0.05, label = "p-value = 0.002")
+```
+
+
+disability vs. non_disability:
+conclusions: people with a disability
+ - don't feel members are as cooperative 
+ - don't feel cloyne supports democracy as well 
+ - feel more welcomed by managers  
+ - attend support circles more often 
+
+```{r}
+set.seed(234982)
+p_values_semester = sapply(1:ncol(cloyne_matrix), permutation, first_sem, multi_sem)
+means_and_p_value_semester = means[c(19,20),]
+means_and_p_value_semester[3,] = p_values_semester
+rownames(means_and_p_value_semester) = c("first_semester", "multi_semester", "p_value") 
+means_and_p_value_semester
+```
+
+```{r}
+ggplot() + geom_density(aes(x = data.frame(cloyne_matrix[,2][multi_sem])), col = "red") + geom_density(aes(x = data.frame(cloyne_matrix[,2][first_sem])), col = "blue") + annotate("text", x = 4.5, y = 0.53, label = "First Semester", col = "blue") + annotate("text", x = 2, y = 0.45, label = "Multiple Semesters", col = "red") + labs(x = "Anti-Oppression", y = "Density") + annotate("text", x = 4.3, y = 0.03, label = "p-value = 0.029")
+```
+
+```{r}
+ggplot() + geom_density(aes(x = data.frame(cloyne_matrix[,4][multi_sem])), col = "red") + geom_density(aes(x = data.frame(cloyne_matrix[,4][first_sem])), col = "blue") + annotate("text", x = 3.8, y = 0.53, label = "First Semester", col = "blue") + annotate("text", x = 1.7, y = 0.35, label = "Multiple Semesters", col = "red") + labs(x = "Community", y = "Density") + annotate("text", x = 4.3, y = 0.03, label = "p-value = 0.031")
+```
+
+```{r}
+ggplot() + geom_density(aes(x = data.frame(cloyne_matrix[,14][multi_sem])), col = "red") + geom_density(aes(x = data.frame(cloyne_matrix[,14][first_sem])), col = "blue") + annotate("text", x = 2, y = 0.22, label = "First Semester", col = "blue") + annotate("text", x = 4, y = 0.55, label = "Multiple Semesters", col = "red") + labs(x = "House Resources Usage", y = "Density") + annotate("text", x = 4.3, y = 0.03, label = "p-value = 0.028")
+```
+```{r}
+ggplot() + geom_density(aes(x = data.frame(cloyne_matrix[,17][multi_sem])), col = "red") + geom_density(aes(x = data.frame(cloyne_matrix[,17][first_sem])), col = "blue") + annotate("text", x = 2, y = 0.24, label = "First Semester", col = "blue") + annotate("text", x = 4, y = 0.48, label = "Multiple Semesters", col = "red") + labs(x = "Managers Approachable", y = "Density") + annotate("text", x = 4.3, y = 0.03, label = "p-value = 0.035")
+```
+
+```{r}
+ggplot() + geom_density(aes(x = data.frame(cloyne_matrix[,23][multi_sem])), col = "red") + geom_density(aes(x = data.frame(cloyne_matrix[,23][first_sem])), col = "blue") + annotate("text", x = 2, y = 0.42, label = "First Semester", col = "blue") + annotate("text", x = 3.5, y = 0.20, label = "Multiple Semesters", col = "red") + labs(x = "Comfort in Speaking at Council", y = "Density") + annotate("text", x = 4.3, y = 0.03, label = "p-value = 0.038")
+```
+
+```{r}
+ggplot() + geom_density(aes(x = data.frame(cloyne_matrix[,32][multi_sem])), col = "red") + geom_density(aes(x = data.frame(cloyne_matrix[,32][first_sem])), col = "blue") + annotate("text", x = 2.8, y = 0.3, label = "First Semester", col = "blue") + annotate("text", x = 2.3, y = 0.55, label = "Multiple Semesters", col = "red") + labs(x = "Makerspace Workshops Attendance", y = "Density") + annotate("text", x = 1.8, y = 0.05, label = "p-value = 0.025")
+```
+
+```{r}
+ggplot() + geom_density(aes(x = data.frame(cloyne_matrix[,33][multi_sem])), col = "red") + geom_density(aes(x = data.frame(cloyne_matrix[,33][first_sem])), col = "blue") + annotate("text", x = 2, y = 0.34, label = "First Semester", col = "blue") + annotate("text", x = 4, y = 0.48, label = "Multiple Semesters", col = "red") + labs(x = "Ingredients Representation", y = "Density") + annotate("text", x = 4.3, y = 0.03, label = "p-value = 0.038")
+```
+
+```{r}
+ggplot() + geom_density(aes(x = data.frame(cloyne_matrix[,34][multi_sem])), col = "red") + geom_density(aes(x = data.frame(cloyne_matrix[,34][first_sem])), col = "blue") + annotate("text", x = 2.7, y = 0.34, label = "First Semester", col = "blue") + annotate("text", x = 4, y = 0.52, label = "Multiple Semesters", col = "red") + labs(x = "Dinners Representation", y = "Density") + annotate("text", x = 4.3, y = 0.03, label = "p-value = 0.041")
+```
+
+
+first semester vs. multi semesters: 
+conclusions: people who lived in Cloyne for 1 semester 
+ - feel that the house focuses on anti-oppression pretty well 
+ - feel a better sense of community 
+ - don't feel as comfortable using house resources
+ - don't feel as comfortable talking with managers
+ - don't feel as comfortable speaking at council 
+ - attend makerspace workshops more often 
+ - don't feel they have as many ingredients to make foods from their background 
+ - are not as satisfied with the representation of their cultural foods at dinners
+
+
+
+
+
+
